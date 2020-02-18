@@ -65,11 +65,10 @@ func main() {
 	
 	fmt.Println()
 	fmt.Printf("BASEBALL TEAM REPORT --- %d PLAYERS FOUND IN FILE\n", len(batters))
-	fmt.Printf("OVERALL BATTING AVERAGE is %0.3f\n", Average(calcData))
+	fmt.Printf("OVERALL BATTING AVERAGE is %0.3f\n\n", Average(calcData))
 	
-	for i := 0; i < len(badlines); i++ {
-		fmt.Println(badlines[i])
-	}
+	FormatData(calcData, badlines)
+
 }
 
 func ReadInFile(path string) (string, error) {
@@ -175,4 +174,19 @@ func Average(batters []CalculatedBatterInfo) float64 {
 	}
 	
 	return runningTotal / float64(len(batters))
+}
+
+func FormatData(batters []CalculatedBatterInfo, errorlines []string) {
+	fmt.Println("    PLAYER NAME      :    AVERAGE  SLUGGING   ONBASE%")
+	fmt.Println("-----------------------------------------------------")
+	
+	for i := 0; i < len(batters); i++ {
+		fmt.Printf("%20v :      %0.3f     %0.3f     %0.3f\n", batters[i].lastName + ", " + batters[i].firstName, batters[i].average, batters[i].slugging, batters[i].onBase)
+	}
+	
+	fmt.Printf("\n----- %d ERROR LINES FOUND IN INPUT DATA -----\n\n", len(errorlines))
+	
+	for i := 0; i < len(errorlines); i++ {
+		fmt.Println(errorlines[i])
+	}
 }
