@@ -41,17 +41,8 @@ type CalculatedBatterInfo struct {
 }
 
 func main() {
-	fmt.Println("Welcome to the player statistics calculator test program! I am going to\n" +
-		"read players from an input data file. You will tell me the name of your\n" +
-		"input file. I will store all of the players in a list, compute each player's\n" +
-		"averages, and then write the resulting team report to your output file!\n")
-		
-	fmt.Print("Enter the name of your input file: ")
-	
-	reader := bufio.NewReader(os.Stdin)
-	path, _ := reader.ReadString('\n')
-	path = path[0 : len(path) - 1]
-	
+	path := GetPath()
+
 	data, err := ReadInFile(path)
 	
 	if err != nil {
@@ -63,12 +54,23 @@ func main() {
 	
 	calcData := Calculate(batters)
 	
-	fmt.Println()
-	fmt.Printf("BASEBALL TEAM REPORT --- %d PLAYERS FOUND IN FILE\n", len(batters))
-	fmt.Printf("OVERALL BATTING AVERAGE is %0.3f\n\n", Average(calcData))
-	
 	FormatData(calcData, badlines)
 
+}
+
+func GetPath() string {
+	fmt.Println("Welcome to the player statistics calculator test program! I am going to\n" +
+		"read players from an input data file. You will tell me the name of your\n" +
+		"input file. I will store all of the players in a list, compute each player's\n" +
+		"averages, and then write the resulting team report to your output file!\n")
+		
+	fmt.Print("Enter the name of your input file: ")
+	
+	reader := bufio.NewReader(os.Stdin)
+	path, _ := reader.ReadString('\n')
+	path = path[0 : len(path) - 1]
+	
+	return path
 }
 
 func ReadInFile(path string) (string, error) {
@@ -177,6 +179,9 @@ func Average(batters []CalculatedBatterInfo) float64 {
 }
 
 func FormatData(batters []CalculatedBatterInfo, errorlines []string) {
+	fmt.Printf("\nBASEBALL TEAM REPORT --- %d PLAYERS FOUND IN FILE\n", len(batters))
+	fmt.Printf("OVERALL BATTING AVERAGE is %0.3f\n\n", Average(batters))
+	
 	fmt.Println("    PLAYER NAME      :    AVERAGE  SLUGGING   ONBASE%")
 	fmt.Println("-----------------------------------------------------")
 	
