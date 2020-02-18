@@ -106,20 +106,17 @@ PrimaryLoop:
 		
 		var err error
 		
-		//im sorry
-		//if only this was C, i could've condensed this to like 5 lines using some pointer workaround stuff
 		batter.firstName = tokens[0]
 		batter.lastName = tokens[1]
 		for j := 0; j < 8; j++ {
 			size := unsafe.Sizeof(uint64(0))
-			*(*uint64)(unsafe.Pointer(uintptr(unsafe.Pointer(&batter.plateAppearances)) + size * uintptr(j))), err = strconv.ParseUint(tokens[j + 2], 10, 32)
+			*(*uint64)(unsafe.Pointer(uintptr(unsafe.Pointer(&batter.plateAppearances)) + size * uintptr(j))), err = strconv.ParseUint(tokens[j + 2], 10, 32) //all i can say about this is that i'm sorry
 			if err != nil {
 				fmt.Println("Invalid line entered-- illegal type of parameter.")
 				continue PrimaryLoop
 			}
 		}
 		
-		//
 		//batter.plateAppearances, err = strconv.ParseUint(tokens[2], 10, 32)
 		//if err != nil {
 		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
