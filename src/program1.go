@@ -16,7 +16,6 @@ import (
 	"os"
 	"strings"
 	"strconv"
-	"unsafe"
 )
 
 type BatterInfo struct {
@@ -108,9 +107,9 @@ PrimaryLoop:
 		
 		batter.firstName = tokens[0]
 		batter.lastName = tokens[1]
+		batterNumericParts := [...]*uint64 { &batter.plateAppearances, &batter.atBats, &batter.singles, &batter.doubles, &batter.triples, &batter.homeRuns, &batter.walks, &batter.hitByPitch }
 		for j := 0; j < 8; j++ {
-			size := unsafe.Sizeof(uint64(0))
-			*(*uint64)(unsafe.Pointer(uintptr(unsafe.Pointer(&batter.plateAppearances)) + size * uintptr(j))), err = strconv.ParseUint(tokens[j + 2], 10, 32) //all i can say about this is that i'm sorry
+			*batterNumericParts[j], err = strconv.ParseUint(tokens[j + 2], 10, 32)
 			if err != nil {
 				fmt.Println("Invalid line entered-- illegal type of parameter.")
 				continue PrimaryLoop
