@@ -14,17 +14,22 @@ import (
 	"io/ioutil"
 	"bufio"
 	"os"
-	//"strings"
+	"strings"
+	"strconv"
+	"unsafe"
 )
 
 type BatterInfo struct {
 	firstName string
 	lastName string
-	singles uint
-	doubles uint
-	triples uint
-	homeruns uint
-	atbats uint
+	plateAppearances uint64
+	atBats uint64
+	singles uint64
+	doubles uint64
+	triples uint64
+	homeRuns uint64
+	walks uint64
+	hitByPitch uint64
 }
 
 func main() {
@@ -45,7 +50,11 @@ func main() {
 		return
 	}
 	
-	fmt.Println(string(data))
+	batters := ParseInfo(data)
+	
+	batters = batters
+	
+	//fmt.Println(data)
 }
 
 func ReadInFile(path string) (string, error) {
@@ -68,4 +77,92 @@ func ReadInFile(path string) (string, error) {
 	file.Close()
 	
 	return string(filedata), nil
+}
+
+func ParseInfo(data string) []BatterInfo {
+	batters := []BatterInfo { }
+	
+	data = strings.Replace(data, "\r", "", -1)
+	lines := strings.Split(data, "\n")
+	
+PrimaryLoop:
+	for i := 0; i < len(lines); i++ {
+		fmt.Println(lines[i])
+		
+		var batter BatterInfo
+		
+		tokens := []string { }
+		spaceSeparatedValues := strings.Split(lines[i], " ")
+		for j := 0; j < len(spaceSeparatedValues); j++ {
+			if spaceSeparatedValues[j] != "" {
+				tokens = append(tokens, spaceSeparatedValues[j])
+			}
+		}
+		
+		if len(tokens) != 10 {
+			fmt.Println("Invalid line entered-- incorrect number of parameters.")
+			continue
+		}
+		
+		var err error
+		
+		//im sorry
+		//if only this was C, i could've condensed this to like 5 lines using some pointer workaround stuff
+		batter.firstName = tokens[0]
+		batter.lastName = tokens[1]
+		for j := 0; j < 8; j++ {
+			size := unsafe.Sizeof(uint64(0))
+			*(*uint64)(unsafe.Pointer(uintptr(unsafe.Pointer(&batter.plateAppearances)) + size * uintptr(j))), err = strconv.ParseUint(tokens[j + 2], 10, 32)
+			if err != nil {
+				fmt.Println("Invalid line entered-- illegal type of parameter.")
+				continue PrimaryLoop
+			}
+		}
+		
+		//
+		//batter.plateAppearances, err = strconv.ParseUint(tokens[2], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		//batter.atBats, err = strconv.ParseUint(tokens[3], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		//batter.singles, err = strconv.ParseUint(tokens[4], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		//batter.doubles, err = strconv.ParseUint(tokens[5], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		//batter.triples, err = strconv.ParseUint(tokens[6], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		//batter.homeRuns, err = strconv.ParseUint(tokens[7], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		//batter.walks, err = strconv.ParseUint(tokens[8], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		//batter.hitByPitch, err = strconv.ParseUint(tokens[9], 10, 32)
+		//if err != nil {
+		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
+		//	continue
+		//}
+		
+		batters = append(batters, batter)
+	}
+	
+	return batters
 }
