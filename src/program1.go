@@ -24,5 +24,4 @@ func main() {
 	calcData := Calculate(batters)
 	
 	FormatData(calcData, badlines)
-
 }
