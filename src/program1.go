@@ -16,6 +16,7 @@ import (
 	"os"
 	"strings"
 	"strconv"
+	"sort"
 )
 
 type BatterInfo struct {
@@ -29,6 +30,14 @@ type BatterInfo struct {
 	homeRuns uint64
 	walks uint64
 	hitByPitch uint64
+}
+
+type CalculatedBatterInfo struct {
+	firstName string
+	lastName string
+	average float64
+	slugging float64
+	onBase float64
 }
 
 func main() {
@@ -49,11 +58,18 @@ func main() {
 		return
 	}
 	
-	batters := ParseInfo(data)
+	batters, badlines := ParseInfo(data)
+	batters = PlayerSort(batters)
 	
-	batters = batters
+	calcData := Calculate(batters)
 	
-	//fmt.Println(data)
+	fmt.Println()
+	fmt.Printf("BASEBALL TEAM REPORT --- %d PLAYERS FOUND IN FILE\n", len(batters))
+	fmt.Printf("OVERALL BATTING AVERAGE is %0.3f\n", Average(calcData))
+	
+	for i := 0; i < len(badlines); i++ {
+		fmt.Println(badlines[i])
+	}
 }
 
 func ReadInFile(path string) (string, error) {
@@ -78,15 +94,16 @@ func ReadInFile(path string) (string, error) {
 	return string(filedata), nil
 }
 
-func ParseInfo(data string) []BatterInfo {
+func ParseInfo(data string) ([]BatterInfo, []string) {
 	batters := []BatterInfo { }
+	invalidstr := []string { }
 	
 	data = strings.Replace(data, "\r", "", -1)
 	lines := strings.Split(data, "\n")
 	
 PrimaryLoop:
 	for i := 0; i < len(lines); i++ {
-		fmt.Println(lines[i])
+		//fmt.Println(lines[i])
 		
 		var batter BatterInfo
 		
@@ -99,7 +116,7 @@ PrimaryLoop:
 		}
 		
 		if len(tokens) != 10 {
-			fmt.Println("Invalid line entered-- incorrect number of parameters.")
+			invalidstr = append(invalidstr, "Invalid line entered (line " + strconv.Itoa(i) + ")-- incorrect number of parameters.")
 			continue
 		}
 		
@@ -107,58 +124,55 @@ PrimaryLoop:
 		
 		batter.firstName = tokens[0]
 		batter.lastName = tokens[1]
+		
+		//this is to save a lot of lines and duplicated code
 		batterNumericParts := [...]*uint64 { &batter.plateAppearances, &batter.atBats, &batter.singles, &batter.doubles, &batter.triples, &batter.homeRuns, &batter.walks, &batter.hitByPitch }
 		for j := 0; j < 8; j++ {
 			*batterNumericParts[j], err = strconv.ParseUint(tokens[j + 2], 10, 32)
 			if err != nil {
-				fmt.Println("Invalid line entered-- illegal type of parameter.")
+				invalidstr = append(invalidstr, "Invalid line entered (line " + strconv.Itoa(i) + ")-- illegal type of parameter.")
 				continue PrimaryLoop
 			}
 		}
 		
-		//batter.plateAppearances, err = strconv.ParseUint(tokens[2], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		//batter.atBats, err = strconv.ParseUint(tokens[3], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		//batter.singles, err = strconv.ParseUint(tokens[4], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		//batter.doubles, err = strconv.ParseUint(tokens[5], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		//batter.triples, err = strconv.ParseUint(tokens[6], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		//batter.homeRuns, err = strconv.ParseUint(tokens[7], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		//batter.walks, err = strconv.ParseUint(tokens[8], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		//batter.hitByPitch, err = strconv.ParseUint(tokens[9], 10, 32)
-		//if err != nil {
-		//	fmt.Println("Invalid line entered-- illegal type of parameter.")
-		//	continue
-		//}
-		
 		batters = append(batters, batter)
 	}
 	
+	return batters, invalidstr
+}
+
+func PlayerSort(batters []BatterInfo) []BatterInfo {
+	sort.Slice(batters, func(i, j int) bool {
+		if batters[i].lastName != batters[j].lastName {
+			return batters[i].lastName < batters[j].lastName
+		} else {
+			return batters[i].firstName < batters[j].firstName
+		}
+	})
+	
 	return batters
+}
+
+func Calculate(batters []BatterInfo) []CalculatedBatterInfo {
+	 newbatters := make([]CalculatedBatterInfo, len(batters))
+	
+	for i := 0; i < len(batters); i++ {
+		newbatters[i].firstName = batters[i].firstName
+		newbatters[i].lastName = batters[i].lastName
+		newbatters[i].average = float64(batters[i].singles + batters[i].doubles + batters[i].triples + batters[i].homeRuns) / float64(batters[i].atBats)
+		newbatters[i].slugging = float64(batters[i].singles + 2 * batters[i].doubles + 3 * batters[i].triples + 4 * batters[i].homeRuns) / float64(batters[i].atBats)
+		newbatters[i].onBase = float64(batters[i].singles + batters[i].doubles + batters[i].triples + batters[i].homeRuns + batters[i].walks + batters[i].hitByPitch) / float64(batters[i].plateAppearances)
+	}
+	
+	return newbatters
+}
+
+func Average(batters []CalculatedBatterInfo) float64 {
+	runningTotal := float64(0)
+	
+	for i := 0; i < len(batters); i++ {
+		runningTotal += batters[i].average
+	}
+	
+	return runningTotal / float64(len(batters))
 }
