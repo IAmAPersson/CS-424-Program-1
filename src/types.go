@@ -9,6 +9,7 @@
 
 package main
 
+//Type: Inputted batter information
 type BatterInfo struct {
 	firstName string
 	lastName string
@@ -22,6 +23,7 @@ type BatterInfo struct {
 	hitByPitch uint64
 }
 
+//Type: Calculated batter information
 type CalculatedBatterInfo struct {
 	firstName string
 	lastName string
