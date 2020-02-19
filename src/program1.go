@@ -5,6 +5,11 @@
 	Mary Allen
 
 	Programming Assignment 1 (Golang)
+	
+	This program takes in a file containing baseball player information, and outputs to the screen calculated data about each player, such as batting average and on base percentage.
+
+	I have opted to program in a traditional structured paradigm. Hence, the paradigm used in this program is very similar to what you would see in a C program.
+	Classes are unused-- I stick to global functions and structs.
 */
 
 package main
